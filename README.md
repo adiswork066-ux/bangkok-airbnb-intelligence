@@ -18,11 +18,11 @@ A live, interactive market intelligence web app built on **50,000+ real Airbnb l
 
 After analysing 50,000+ listings across 80+ Bangkok neighbourhoods:
 
-- 🏡 **Entire-home listings command a 2x+ price premium** over private rooms
-- ⭐ **Superhosts earn ~18% more per night** on average than regular hosts
-- 📍 **Silom and Sukhumvit** are the most expensive neighbourhoods by median price
-- 🏢 **Business hosts** (10+ listings) account for a significant share of supply but price similarly to individuals
-- 📉 Higher review counts do **not** strongly correlate with higher prices — quality matters more than volume
+-  **Entire-home listings command a 2x+ price premium** over private rooms
+-  **Superhosts earn ~18% more per night** on average than the regular hosts
+-  **Silom and Sukhumvit** are the most expensive neighbourhoods by median price
+-  **Business hosts** (10+ listings) account for a significant share of supply but are priced at a similar rate to that of the individuals
+-  Higher review counts do **not** strongly correlate with higher prices because quality matters more than volume
 
 ---
 
@@ -62,29 +62,6 @@ bangkok-airbnb-intelligence/
 ├── requirements.txt        # Python dependencies
 └── README.md
 ```
-
----
-
-##  Run Locally
-
-**1. Clone the repository**
-```bash
-git clone https://github.com/YOUR_USERNAME/bangkok-airbnb-intelligence.git
-cd bangkok-airbnb-intelligence
-```
-
-**2. Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-**3. Run the app**
-```bash
-streamlit run app.py
-```
-
-App opens at `http://localhost:8501`
-
 ---
 
 ##  Data Source
@@ -105,7 +82,7 @@ Real Airbnb listing data scraped directly from the platform. Not a cleaned Kaggl
 | Issue | Decision |
 |-------|----------|
 | Price stored as `$1,234.00` string | Stripped `$` and `,`, converted to float |
-| Listings above $1,000/night | Removed as outliers — skewed analysis |
+| Listings above $1,000/night | Removed as outliers — for more precise analysis (skewed analysis) |
 | Null values in review columns | Kept rows, handled per-analysis with `.dropna()` |
 | `host_is_superhost` as `t`/`f` | Mapped to readable labels for display |
 
@@ -115,7 +92,7 @@ Real Airbnb listing data scraped directly from the platform. Not a cleaned Kaggl
 
 **Page 1 — Market Overview**
 - Neighbourhood dropdown + price range slider + minimum nights filter
-- KPI cards: total listings, avg price, median review score, superhost %
+- Key Metric (KPI cards): total listings, avg price, median review score, superhost %
 - Room type distribution bar chart
 - Top 10 most expensive neighbourhoods table
 
@@ -136,5 +113,5 @@ Real Airbnb listing data scraped directly from the platform. Not a cleaned Kaggl
 
 **Adi**
 - 📧 adiswork066@gmail.com
-- 💼 [LinkedIn](https://linkedin.com/in/yourprofile)
+- 💼 [LinkedIn](https://www.linkedin.com/in/aditya-chotalia-6a5bbb284?utm_source=share_via&utm_content=profile&utm_medium=member_ios)
 - 🐙 [GitHub](https://github.com/adiswork066-ux)
