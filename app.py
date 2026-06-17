@@ -20,7 +20,7 @@ st.set_page_config(
 # ─────────────────────────────────────────
 @st.cache_data
 def load_data():
-    df = pd.read_csv(r'C:\Users\adity\OneDrive\Desktop\AirBNB\app\listings_clean.csv')
+    df = pd.read_csv('listings_clean.csv')
     return df
 
 df = load_data()
