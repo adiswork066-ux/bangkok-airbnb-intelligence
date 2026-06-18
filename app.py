@@ -21,9 +21,7 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     df = pd.read_csv('listings_clean.csv')
-    # Ensure price is numeric
     df['price'] = pd.to_numeric(df['price'], errors='coerce')
-    # Remove outliers
     df = df[df['price'] < 50000].copy()
     return df
 
@@ -31,20 +29,53 @@ df = load_data()
 neighbourhoods = sorted(df['neighbourhood_cleansed'].unique())
 
 # ─────────────────────────────────────────
-# SIDEBAR NAVIGATION
+# CURRENCY TOGGLE (Sidebar)
 # ─────────────────────────────────────────
 st.sidebar.title("🏠 Bangkok Airbnb")
+
+currency = st.sidebar.radio(
+    "💱 Display Currency",
+    ["฿ Thai Baht", "₹ Indian Rupee"]
+)
+
+THB_TO_INR = 2.5  # 1 THB ≈ 2.5 INR
+
+def format_price(thb_amount):
+    """Convert and format price based on selected currency."""
+    if currency == "₹ Indian Rupee":
+        return f"₹{thb_amount * THB_TO_INR:,.0f}"
+    else:
+        return f"฿{thb_amount:,.0f}"
+
+def price_label():
+    """Return the correct currency label for axis/column headers."""
+    return "₹ INR" if currency == "₹ Indian Rupee" else "฿ THB"
+
+def convert(amount):
+    """Return numeric converted value."""
+    if currency == "₹ Indian Rupee":
+        return amount * THB_TO_INR
+    return amount
+
+# ─────────────────────────────────────────
+# SIDEBAR NAVIGATION
+# ─────────────────────────────────────────
+st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigate",
     ["📊 Market Overview", "🗺️ Interactive Map", "👤 Host Intelligence"]
 )
+
+# Show conversion rate as info
+if currency == "₹ Indian Rupee":
+    st.sidebar.info("1 Thai Baht = ₹2.5 INR\n(Rate as of June 2026)")
 
 # ═══════════════════════════════════════════════════════
 # PAGE 1 — MARKET OVERVIEW
 # ═══════════════════════════════════════════════════════
 if page == "📊 Market Overview":
     st.title("📊 Bangkok Airbnb Market Overview")
-    st.markdown("Explore pricing and listing data by neighbourhood. All prices in **Thai Baht (฿)**.")
+    st.markdown(f"Explore pricing and listing data by neighbourhood. Prices shown in **{currency}**.")
 
     # --- FILTERS ---
     col1, col2, col3 = st.columns(3)
@@ -55,11 +86,12 @@ if page == "📊 Market Overview":
             ["All"] + neighbourhoods
         )
     with col2:
+        max_price = int(convert(df['price'].max()))
         price_range = st.slider(
-            "Price Range (฿ per night)",
-            min_value=int(df['price'].min()),
-            max_value=int(df['price'].max()),
-            value=(0, 5000)
+            f"Price Range ({price_label()} per night)",
+            min_value=0,
+            max_value=max_price,
+            value=(0, int(convert(5000)))
         )
     with col3:
         min_nights = st.slider(
@@ -70,12 +102,20 @@ if page == "📊 Market Overview":
         )
 
     # --- FILTER DATA ---
+    # Convert slider values back to THB for filtering
+    if currency == "₹ Indian Rupee":
+        price_min_thb = price_range[0] / THB_TO_INR
+        price_max_thb = price_range[1] / THB_TO_INR
+    else:
+        price_min_thb = price_range[0]
+        price_max_thb = price_range[1]
+
     filtered = df.copy()
     if selected_neighbourhood != "All":
         filtered = filtered[filtered['neighbourhood_cleansed'] == selected_neighbourhood]
     filtered = filtered[
-        (filtered['price'] >= price_range[0]) &
-        (filtered['price'] <= price_range[1]) &
+        (filtered['price'] >= price_min_thb) &
+        (filtered['price'] <= price_max_thb) &
         (filtered['minimum_nights'] <= min_nights)
     ]
 
@@ -84,9 +124,14 @@ if page == "📊 Market Overview":
     k1, k2, k3, k4 = st.columns(4)
 
     k1.metric("Total Listings", f"{len(filtered):,}")
-    k2.metric("Avg Price / Night", f"฿{filtered['price'].mean():.0f}")
-    k3.metric("Median Review Score", f"{filtered['review_scores_rating'].median():.1f}")
-
+    k2.metric(
+        f"Avg Price / Night ({price_label()})",
+        format_price(filtered['price'].mean())
+    )
+    k3.metric(
+        "Median Review Score",
+        f"{filtered['review_scores_rating'].median():.1f}"
+    )
     superhost_pct = (filtered['host_is_superhost'] == 't').mean() * 100
     k4.metric("Superhost %", f"{superhost_pct:.1f}%")
 
@@ -112,9 +157,8 @@ if page == "📊 Market Overview":
         .head(10)
         .reset_index()
     )
-    # FIX: correct column rename — only 2 columns exist after reset_index
-    top_n.columns = ['Neighbourhood', 'Median Price (฿)']
-    top_n['Median Price (฿)'] = top_n['Median Price (฿)'].round(0).astype(int)
+    top_n.columns = ['Neighbourhood', 'Median Price']
+    top_n['Median Price'] = top_n['Median Price'].apply(format_price)
     st.dataframe(top_n, use_container_width=True)
 
 
@@ -123,7 +167,7 @@ if page == "📊 Market Overview":
 # ═══════════════════════════════════════════════════════
 elif page == "🗺️ Interactive Map":
     st.title("🗺️ Bangkok Price Heatmap")
-    st.markdown("Red zones = expensive areas. Zoom in to explore. All prices in **Thai Baht (฿)**.")
+    st.markdown(f"Red zones = expensive areas. Zoom in to explore. Prices in **{currency}**.")
 
     map_type = st.radio(
         "Select Map Type",
@@ -159,7 +203,7 @@ elif page == "🗺️ Interactive Map":
                 color='steelblue',
                 fill=True,
                 fill_opacity=0.5,
-                popup=f"฿{row['price']:.0f} | {row['neighbourhood_cleansed']}"
+                popup=f"{format_price(row['price'])} | {row['neighbourhood_cleansed']}"
             ).add_to(mc)
 
     # Display map in Streamlit
@@ -174,7 +218,8 @@ elif page == "🗺️ Interactive Map":
         .head(10)
         .reset_index(drop=True)
     )
-    top_listings.columns = ['Name', 'Neighbourhood', 'Room Type', 'Price (฿)', 'Rating']
+    top_listings['price'] = top_listings['price'].apply(format_price)
+    top_listings.columns = ['Name', 'Neighbourhood', 'Room Type', f'Price ({price_label()})', 'Rating']
     st.dataframe(top_listings, use_container_width=True)
 
 
@@ -183,10 +228,12 @@ elif page == "🗺️ Interactive Map":
 # ═══════════════════════════════════════════════════════
 elif page == "👤 Host Intelligence":
     st.title("👤 Host Intelligence Dashboard")
-    st.markdown("All prices in **Thai Baht (฿)**.")
+    st.markdown(f"All prices in **{currency}**.")
 
     # Business vs Individual
-    df['host_type'] = np.where(df['host_listings_count'] >= 10, 'Business Host', 'Individual Host')
+    df['host_type'] = np.where(
+        df['host_listings_count'] >= 10, 'Business Host', 'Individual Host'
+    )
 
     st.markdown("### Business vs Individual Hosts")
     h1, h2 = st.columns(2)
@@ -201,11 +248,12 @@ elif page == "👤 Host Intelligence":
 
     with h2:
         host_price = df.groupby('host_type')['price'].median().reset_index()
+        host_price['price'] = host_price['price'].apply(convert)
         fig, ax = plt.subplots()
         ax.bar(host_price['host_type'], host_price['price'],
                color=['steelblue', 'coral'])
         ax.set_title("Median Price by Host Type")
-        ax.set_ylabel("Price (฿)")
+        ax.set_ylabel(f"Price ({price_label()})")
         plt.tight_layout()
         st.pyplot(fig)
 
@@ -218,20 +266,21 @@ elif page == "👤 Host Intelligence":
         regular_price = super_price.get('f', 0)
         super_p = super_price.get('t', 0)
         premium = ((super_p - regular_price) / regular_price * 100).round(1)
-        diff = super_p - regular_price
+        diff = convert(super_p - regular_price)
+        symbol = "₹" if currency == "₹ Indian Rupee" else "฿"
         st.metric(
             "Superhost Price Premium",
             f"{premium}%",
-            delta=f"฿{diff:.0f} more per night"
+            delta=f"{symbol}{diff:,.0f} more per night"
         )
 
     with s2:
         fig, ax = plt.subplots()
         labels = ['Regular Host', 'Superhost']
-        values = [regular_price, super_p]
+        values = [convert(regular_price), convert(super_p)]
         ax.bar(labels, values, color=['coral', 'gold'])
         ax.set_title("Median Price Comparison")
-        ax.set_ylabel("Price (฿)")
+        ax.set_ylabel(f"Price ({price_label()})")
         plt.tight_layout()
         st.pyplot(fig)
 
@@ -248,6 +297,6 @@ elif page == "👤 Host Intelligence":
         .head(10)
         .reset_index()
     )
-    top_hosts['Avg_Price'] = top_hosts['Avg_Price'].round(0).astype(int)
-    top_hosts.columns = ['Host Name', 'Total Listings', 'Avg Price (฿)', 'Superhost']
+    top_hosts['Avg_Price'] = top_hosts['Avg_Price'].apply(format_price)
+    top_hosts.columns = ['Host Name', 'Total Listings', f'Avg Price ({price_label()})', 'Superhost']
     st.dataframe(top_hosts, use_container_width=True)
