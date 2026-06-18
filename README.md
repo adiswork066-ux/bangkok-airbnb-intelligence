@@ -2,7 +2,7 @@
 
 A live, interactive market intelligence web app built on **23,000+ real Airbnb listings** from Bangkok across **50 neighbourhoods** in which i made pricing trends, geospatial heatmaps, host behaviour patterns.
 
-🔗 **[Live App]([https://your-app-url.streamlit.app](https://bangkok-airbnb-intelligence-byadi.streamlit.app/))** &nbsp;|&nbsp; 📂 **[GitHub](https://github.com/adiswork066-ux/bangkok-airbnb-intelligence)**
+🔗 **[Live App](https://bangkok-airbnb-intelligence-byadi.streamlit.app/)** &nbsp;|&nbsp; 📂 **[GitHub](https://github.com/adiswork066-ux/bangkok-airbnb-intelligence)**
 
 > I've built an EDA on real Airbnb data — not a cleaned Kaggle toy dataset.
 
@@ -116,5 +116,5 @@ bangkok-airbnb-intelligence/
 ## 👤 Author
 
 **Adi**
-- [LinkedIn]([https://linkedin.com/in/yourprofile](https://www.linkedin.com/in/aditya-chotalia-6a5bbb284?utm_source=share_via&utm_content=profile&utm_medium=member_ios))
+- [LinkedIn](https://www.linkedin.com/in/aditya-chotalia-6a5bbb284?utm_source=share_via&utm_content=profile&utm_medium=member_ios)
 - [GitHub](https://github.com/adiswork066-ux)
